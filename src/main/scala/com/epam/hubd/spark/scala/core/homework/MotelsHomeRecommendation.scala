@@ -166,11 +166,6 @@ object MotelsHomeRecommendation {
     sc.textFile(motelsPath)
       .map(_.split("\n"))
       .map(str => str.flatMap(_.split(Constants.DELIMITER)))
-      .map(arr => (arr(0), arr(1))).foreach(c => println(c._1 + " " + c._2))
-
-    sc.textFile(motelsPath)
-      .map(_.split("\n"))
-      .map(str => str.flatMap(_.split(Constants.DELIMITER)))
       .map(arr => (arr(0), arr(1)))
   }
 
