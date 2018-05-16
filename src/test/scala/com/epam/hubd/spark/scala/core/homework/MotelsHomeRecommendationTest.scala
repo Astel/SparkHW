@@ -48,6 +48,27 @@ class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with
     assertRDDEquals(expected, rawBids)
   }
 
+  test("should read raw motels") {
+    val expected = sc.parallelize(
+      Array(
+        ("0000007", "Big River Copacabana Inn"),
+        ("0000001", "Olinda Windsor Inn"),
+        ("0000008", "Sheraton Moos' Motor Inn"),
+        ("0000002", "Merlin Por Motel"),
+        ("0000009", "Moon Light Sun Sine Inn"),
+        ("0000010", "Copacabana Motor Inn"),
+        ("0000003", "Olinda Big River Casino"),
+        ("0000004", "Majestic Big River Elegance Plaza"),
+        ("0000005", "Majestic Ibiza Por Hostel"),
+        ("0000006", "Mengo Elegance River Side Hotel")
+      )
+    )
+
+    val rawBids = MotelsHomeRecommendation.getMotels(sc, INPUT_MOTELS_INTEGRATION)
+
+    assertRDDEquals(expected, rawBids)
+  }
+
   test("should collect erroneous records") {
     val rawBids = sc.parallelize(
       Seq(
