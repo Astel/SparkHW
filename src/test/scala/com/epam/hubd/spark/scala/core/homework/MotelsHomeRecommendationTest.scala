@@ -10,17 +10,18 @@ import org.apache.hadoop.fs.Path
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.junit.Assert
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSuite}
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSuite, Matchers}
 
 /**
   * Created by Csaba_Bejan on 8/17/2016.
   */
 class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with RDDComparisons with BeforeAndAfter
-  with BeforeAndAfterAll with SparkContextProvider {
+  with BeforeAndAfterAll with SparkContextProvider with Matchers {
 
   override def conf = new SparkConf().setMaster("local[2]").setAppName("motels-home-recommendation test")
 
   val INPUT_BIDS_SAMPLE = "src/test/resources/bids_sample.txt"
+  val INPUT_EXCHANGE_RATES = "src/test/resources/rates.txt"
 
   val INPUT_BIDS_INTEGRATION = "src/test/resources/integration/input/bids.txt"
   val INPUT_EXCHANGE_RATES_INTEGRATION = "src/test/resources/integration/input/exchange_rate.txt"
@@ -64,9 +65,21 @@ class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with
       )
     )
 
-    val rawBids = MotelsHomeRecommendation.getMotels(sc, INPUT_MOTELS_INTEGRATION)
+    val rawMotels = MotelsHomeRecommendation.getMotels(sc, INPUT_MOTELS_INTEGRATION)
 
-    assertRDDEquals(expected, rawBids)
+    assertRDDEquals(expected, rawMotels)
+  }
+
+  test("should correct read raw exchange rates") {
+    val expected = Map(
+      "11-06-05-2016" -> 0.803,
+      "11-05-08-2016" -> 0.873,
+      "10-06-11-2015" -> 0.987,
+      "10-05-02-2016" -> 0.876)
+
+    val rawRates = MotelsHomeRecommendation.getExchangeRates(sc, INPUT_EXCHANGE_RATES)
+
+    rawRates shouldEqual expected
   }
 
   test("should collect erroneous records") {

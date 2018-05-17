@@ -1,17 +1,10 @@
 package com.epam.hubd.spark.scala.core.homework
 
 import com.epam.hubd.spark.scala.core.homework.Constants.BIDS_HEADER
-import com.epam.hubd.spark.scala.core.homework.domain.{
-  BidError,
-  BidItem,
-  EnrichedItem
-}
+import com.epam.hubd.spark.scala.core.homework.domain.{BidError, BidItem, EnrichedItem}
 import com.github.nscala_time.time.Imports._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
-
-import scala.collection.mutable.ListBuffer
-import scala.util.{Failure, Success, Try}
 
 object MotelsHomeRecommendation {
 
@@ -29,13 +22,6 @@ object MotelsHomeRecommendation {
     val outputBasePath = args(3)
 
     System.setProperty("hadoop.home.dir", "c:\\")
-
-//    val spark = SparkSession.builder
-//      .master("local[2]")
-//      .appName("motels-home-recommendation")
-//      .getOrCreate()
-//
-//    val sc = spark.sparkContext
 
     val sc = new SparkContext(
       new SparkConf().setAppName("motels-home-recommendation"))
@@ -135,17 +121,15 @@ object MotelsHomeRecommendation {
         val bidData = DateTime.parse(list(1), Constants.INPUT_DATE_FORMAT)
         val outputData = bidData.toString(Constants.OUTPUT_DATE_FORMAT)
 
-//        val exchanges = exchangesDates
-//          .filter(m => bidData.isAfter(m._1) || bidData.isEqual(m._1))
-//          .reduceLeft((d1, d2) => if (d1._1.isAfter(d2._1) || d1._1.isEqual(d2._1)) d1 else d2)
-//
-//        if(list(0).contains("0000005") && list(1).contains("01-13-05-2016"))
-//          println(exchanges._1.toString() + " " + exchanges._2 + " " + list(8) + " " + (exchanges._2 * list(8).toDouble).formatted("%.3f"))
-
         val exchangesRate = exchangesDates
-          .filter(m => bidData.isAfter(m._1) || bidData.isEqual(m._1))
-          .reduceLeft((d1, d2) => if (d1._1.isAfter(d2._1) || d1._1.isEqual(d2._1)) d1 else d2)._2
+          .filter(m => bidData.isAfter(m._1) || bidData.isEqual(m._1))//fillter dates before and equals for current
+          .reduceLeft((d1, d2) => if (d1._1.isAfter(d2._1) || d1._1.isEqual(d2._1)) d1 else d2)._2// find latest
 
+        /*
+         * list 5 => US
+         * list 6 => MX
+         * list 8 => CA
+         */
         if(list(5) == "" && list(6) == "" && list(8) == "") {
           List[BidItem]()
         }
@@ -172,7 +156,7 @@ object MotelsHomeRecommendation {
   def getEnriched(bids: RDD[BidItem],
                   motels: RDD[(String, String)]): RDD[EnrichedItem] = {
     val broadcastedMotels =
-      motels.map(item => item._1 -> item._2).collect().toMap
+      motels.map(item => item._1 -> item._2).collect().toMap //get motels to use them in next map
 
     bids.map(item => {
       val motelName = broadcastedMotels.getOrElse(item.motelId, "unknown")
